@@ -1,0 +1,38 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+    <div style="margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+        <form method="post" style="display: flex; gap: 10px; align-items: center;">
+            {% csrf_token %}
+            <div>
+                <label for="check_date" style="font-weight: bold; margin-right: 5px;">Tarih:</label>
+                <input type="date" id="check_date" name="check_date" value="{{ check_date|default:'' }}" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+                <label for="check_time" style="font-weight: bold; margin-right: 5px;">Saat:</label>
+                <input type="time" id="check_time" name="check_time" value="{{ check_time|default:'' }}" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <button type="submit" style="padding: 5px 15px; background: #417690; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Masa Durumlarını Kontrol Et
+            </button>
+        </form>
+    </div>
+    {{ block.super }}
+{% endblock %}
+
+{% block result_list %}
+    {% if occupied_tables %}
+        <div style="margin-bottom: 20px; padding: 10px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px;">
+            <p style="margin: 0; color: #856404;">
+                <strong>Seçilen Tarih ve Saat için Dolu Masalar:</strong>
+                {% for table_id in occupied_tables %}
+                    <span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 12px; margin-left: 5px;">
+                        Masa {{ table_id }}
+                    </span>
+                {% endfor %}
+            </p>
+        </div>
+    {% endif %}
+    {{ block.super }}
+{% endblock %} 

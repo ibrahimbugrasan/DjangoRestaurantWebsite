@@ -1,0 +1,593 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Rezervasyon - SAN Rezervasyon{% endblock %}
+
+{% block extra_css %}
+<style>
+    .table-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 5rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .table-row {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+    }
+    .table-card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #ffffff;
+        border: 2px solid #e9ecef;
+        padding: 1.2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        width: 300px;
+        margin: 0;
+    }
+    .table-card:hover:not(.occupied):not(.selected) {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        border-color: #ffc107;
+    }
+    .table-card.selected {
+        border: 2px solid #ffc107;
+        background: #fff9e6;
+        cursor: default;
+        box-shadow: 0 10px 20px rgba(255, 193, 7, 0.15);
+    }
+    .table-card.occupied {
+        opacity: 0.7;
+        cursor: not-allowed;
+        background: #fff5f5;
+        border-color: #dc3545;
+    }
+    .table-svg-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+    .table-svg {
+        width: 100%;
+        height: 100%;
+    }
+    .table-top {
+        fill: #6c757d;
+        stroke: #495057;
+        stroke-width: 2;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    }
+    .chair {
+        fill: #e9ecef;
+        stroke: #adb5bd;
+        stroke-width: 2;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    }
+    .chair:hover {
+        fill: #ffc107;
+        stroke: #ffc107;
+        filter: drop-shadow(0 1px 2px rgba(255, 193, 7, 0.2));
+        transform: translateY(1px);
+    }
+    .chair.active {
+        fill: #ffc107;
+        stroke: #ffc107;
+        filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3));
+    }
+    .chair.disabled {
+        fill: #e9ecef;
+        stroke: #dee2e6;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+    .table-info {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2;
+        pointer-events: none;
+        padding: 1rem;
+    }
+    .table-number {
+        position: absolute;
+        top: 0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.95);
+        padding: 0.3rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        backdrop-filter: blur(4px);
+    }
+    .table-capacity {
+        position: absolute;
+        bottom: 0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.95);
+        padding: 0.3rem 1rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        backdrop-filter: blur(4px);
+    }
+    .table-status {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        backdrop-filter: blur(4px);
+    }
+    .table-type {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        backdrop-filter: blur(4px);
+    }
+    .selected-table-info {
+        background: #fff9e6;
+        border: 2px solid #ffc107;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        display: none;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15);
+    }
+    .selected-table-info.show {
+        display: block;
+    }
+    .selected-table-info h4 {
+        color: #856404;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    .selected-table-info p {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+    .chair-count-display {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 0.5rem 1rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 2;
+        backdrop-filter: blur(4px);
+    }
+    .status-available {
+        color: #155724;
+        background: rgba(212, 237, 218, 0.95);
+    }
+    .status-occupied {
+        color: #721c24;
+        background: rgba(248, 215, 218, 0.95);
+    }
+    .table-type.small {
+        color: #155724;
+        background: rgba(212, 237, 218, 0.95);
+    }
+    .table-type.medium {
+        color: #856404;
+        background: rgba(255, 243, 205, 0.95);
+    }
+    .table-type.large {
+        color: #004085;
+        background: rgba(204, 229, 255, 0.95);
+    }
+    .card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .tables-container {
+        display: none;
+    }
+    .tables-container.show {
+        display: block;
+    }
+    .date-time-container {
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Rezervasyon Yap</h2>
+                    
+                    <!-- Tarih ve Saat Seçimi -->
+                    <div class="date-time-container">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="date" class="form-label">Tarih</label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="time" class="form-label">Saat</label>
+                                <input type="time" class="form-control" id="time" name="time" required>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary" id="check-availability">
+                                Müsait Masaları Göster
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Masa Seçimi -->
+                    <div class="tables-container" id="tablesContainer">
+                        <div class="selected-table-info" id="selectedTableInfo">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h4 class="mb-0">Seçilen Masa: <span id="selectedTableNumber"></span></h4>
+                                    <p class="mb-0">Kapasite: <span id="selectedTableCapacity"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2">Sandalye sayısını ayarlamak için sandalyelere tıklayın</p>
+                                    <div class="chair-count-display">
+                                        Sandalye: <span id="chairCount">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-grid">
+                            <!-- 4 Kişilik Masalar -->
+                            <div class="table-row">
+                                {% for table in tables|slice:":2" %}
+                                <div class="table-card" 
+                                     data-table-id="{{ table.id }}"
+                                     data-table-number="{{ table.number }}"
+                                     data-max-chairs="{{ table.max_chairs }}"
+                                     data-min-chairs="{{ table.min_chairs }}"
+                                     data-current-chairs="{{ table.current_chairs }}"
+                                     data-capacity="{{ table.capacity }}">
+                                    <div class="table-info">
+                                        <span class="table-status status-available">
+                                            Müsait
+                                        </span>
+                                        <span class="table-type small">
+                                            Küçük
+                                        </span>
+                                        <div class="table-number">Masa {{ table.number }}</div>
+                                        <div class="table-capacity">4 Kişilik</div>
+                                    </div>
+                                    <div class="table-svg-container">
+                                        <svg class="table-svg" viewBox="0 0 200 200">
+                                            <g>
+                                                <rect class="table-top" x="50" y="50" width="100" height="100" rx="10"/>
+                                                <!-- Sol sandalyeler -->
+                                                <circle class="chair" cx="30" cy="100" r="12" data-position="left"/>
+                                                <!-- Üst sandalyeler -->
+                                                <circle class="chair" cx="100" cy="30" r="12" data-position="top"/>
+                                                <!-- Alt sandalyeler -->
+                                                <circle class="chair" cx="100" cy="170" r="12" data-position="bottom"/>
+                                                <!-- Sağ sandalyeler -->
+                                                <circle class="chair" cx="170" cy="100" r="12" data-position="right"/>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- 6 Kişilik Masalar -->
+                            <div class="table-row">
+                                {% for table in tables|slice:"2:4" %}
+                                <div class="table-card" 
+                                     data-table-id="{{ table.id }}"
+                                     data-table-number="{{ table.number }}"
+                                     data-max-chairs="{{ table.max_chairs }}"
+                                     data-min-chairs="{{ table.min_chairs }}"
+                                     data-current-chairs="{{ table.current_chairs }}"
+                                     data-capacity="{{ table.capacity }}">
+                                    <div class="table-info">
+                                        <span class="table-status status-available">
+                                            Müsait
+                                        </span>
+                                        <span class="table-type medium">
+                                            Orta
+                                        </span>
+                                        <div class="table-number">Masa {{ table.number }}</div>
+                                        <div class="table-capacity">6 Kişilik</div>
+                                    </div>
+                                    <div class="table-svg-container">
+                                        <svg class="table-svg" viewBox="0 0 200 200">
+                                            <g>
+                                                <rect class="table-top" x="50" y="50" width="100" height="100" rx="10"/>
+                                                <!-- Sol sandalyeler -->
+                                                <circle class="chair" cx="30" cy="75" r="12" data-position="left-top"/>
+                                                <circle class="chair" cx="30" cy="125" r="12" data-position="left-bottom"/>
+                                                <!-- Üst sandalyeler -->
+                                                <circle class="chair" cx="75" cy="30" r="12" data-position="top-left"/>
+                                                <circle class="chair" cx="125" cy="30" r="12" data-position="top-right"/>
+                                                <!-- Alt sandalyeler -->
+                                                <circle class="chair" cx="75" cy="170" r="12" data-position="bottom-left"/>
+                                                <circle class="chair" cx="125" cy="170" r="12" data-position="bottom-right"/>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- 10 Kişilik Masalar -->
+                            <div class="table-row">
+                                {% for table in tables|slice:"4:6" %}
+                                <div class="table-card" 
+                                     data-table-id="{{ table.id }}"
+                                     data-table-number="{{ table.number }}"
+                                     data-max-chairs="{{ table.max_chairs }}"
+                                     data-min-chairs="{{ table.min_chairs }}"
+                                     data-current-chairs="{{ table.current_chairs }}"
+                                     data-capacity="{{ table.capacity }}">
+                                    <div class="table-info">
+                                        <span class="table-status status-available">
+                                            Müsait
+                                        </span>
+                                        <span class="table-type large">
+                                            Büyük
+                                        </span>
+                                        <div class="table-number">Masa {{ table.number }}</div>
+                                        <div class="table-capacity">10 Kişilik</div>
+                                    </div>
+                                    <div class="table-svg-container">
+                                        <svg class="table-svg" viewBox="0 0 200 200">
+                                            <g>
+                                                <rect class="table-top" x="50" y="50" width="100" height="100" rx="10"/>
+                                                <!-- Sol sandalyeler -->
+                                                <circle class="chair" cx="30" cy="60" r="12" data-position="left-top"/>
+                                                <circle class="chair" cx="30" cy="100" r="12" data-position="left-middle"/>
+                                                <circle class="chair" cx="30" cy="140" r="12" data-position="left-bottom"/>
+                                                <!-- Üst sandalyeler -->
+                                                <circle class="chair" cx="60" cy="30" r="12" data-position="top-left"/>
+                                                <circle class="chair" cx="100" cy="30" r="12" data-position="top-middle"/>
+                                                <circle class="chair" cx="140" cy="30" r="12" data-position="top-right"/>
+                                                <!-- Alt sandalyeler -->
+                                                <circle class="chair" cx="60" cy="170" r="12" data-position="bottom-left"/>
+                                                <circle class="chair" cx="100" cy="170" r="12" data-position="bottom-middle"/>
+                                                <circle class="chair" cx="140" cy="170" r="12" data-position="bottom-right"/>
+                                                <!-- Sağ sandalyeler -->
+                                                <circle class="chair" cx="170" cy="100" r="12" data-position="right-middle"/>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Rezervasyon Formu -->
+                        <form method="post" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" id="selected_table_id" name="table_id">
+                            <input type="hidden" id="selected_chairs" name="number_of_guests">
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="customer_name" class="form-label">Ad Soyad</label>
+                                    <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="customer_email" class="form-label">E-posta</label>
+                                    <input type="email" class="form-control" id="customer_email" name="customer_email" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="customer_phone" class="form-label">Telefon</label>
+                                    <input type="tel" class="form-control" id="customer_phone" name="customer_phone" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="notes" class="form-label">Notlar</label>
+                                    <input type="text" class="form-control" id="notes" name="notes">
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg px-5" id="submit-btn" disabled>
+                                    <i class="bi bi-calendar-check me-2"></i>Rezervasyonu Onayla
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableCards = document.querySelectorAll('.table-card');
+    const selectedTableInfo = document.getElementById('selectedTableInfo');
+    const selectedTableNumber = document.getElementById('selectedTableNumber');
+    const selectedTableCapacity = document.getElementById('selectedTableCapacity');
+    const chairCount = document.getElementById('chairCount');
+    const submitBtn = document.getElementById('submit-btn');
+    const selectedTableId = document.getElementById('selected_table_id');
+    const selectedChairs = document.getElementById('selected_chairs');
+    const dateInput = document.getElementById('date');
+    const timeInput = document.getElementById('time');
+    const checkAvailabilityBtn = document.getElementById('check-availability');
+    const tablesContainer = document.getElementById('tablesContainer');
+    
+    let selectedTable = null;
+    let currentChairs = 0;
+    let activeChairs = new Set();
+
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+
+    // Müsait masaları kontrol et
+    checkAvailabilityBtn.addEventListener('click', function() {
+        const selectedDate = dateInput.value;
+        const selectedTime = timeInput.value;
+        
+        if (!selectedDate || !selectedTime) {
+            alert('Lütfen tarih ve saat seçin.');
+            return;
+        }
+        
+        // Önce tüm masaları müsait yap
+        tableCards.forEach(card => {
+            card.classList.remove('occupied');
+            const statusSpan = card.querySelector('.table-status');
+            if (statusSpan) {
+                statusSpan.textContent = 'Müsait';
+                statusSpan.classList.remove('status-occupied');
+                statusSpan.classList.add('status-available');
+            }
+        });
+        
+        // Backend'den masa durumlarını kontrol et
+        fetch(`/check-table-availability/?date=${selectedDate}&time=${selectedTime}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.occupied_tables && data.occupied_tables.length > 0) {
+                    data.occupied_tables.forEach(tableId => {
+                        const card = document.querySelector(`.table-card[data-table-id="${tableId}"]`);
+                        if (card) {
+                            card.classList.add('occupied');
+                            card.classList.remove('selected');
+                            
+                            const statusSpan = card.querySelector('.table-status');
+                            if (statusSpan) {
+                                statusSpan.textContent = 'Dolu';
+                                statusSpan.classList.remove('status-available');
+                                statusSpan.classList.add('status-occupied');
+                            }
+                        }
+                    });
+                }
+                // Masaları göster
+                tablesContainer.classList.add('show');
+            })
+            .catch(error => {
+                console.error('Masa durumu kontrol edilirken hata oluştu:', error);
+            });
+    });
+
+    // Table click handling
+    tableCards.forEach(card => {
+        card.addEventListener('click', function() {
+            if (this.classList.contains('occupied')) return;
+            
+            // Diğer masaların seçimini kaldır
+            tableCards.forEach(c => c.classList.remove('selected'));
+            
+            // Bu masayı seç
+            this.classList.add('selected');
+            selectedTable = this;
+            
+            // Seçilen masa bilgilerini göster
+            selectedTableInfo.classList.add('show');
+            selectedTableNumber.textContent = this.dataset.tableNumber;
+            selectedTableCapacity.textContent = this.dataset.capacity + ' Kişilik';
+            
+            // Sandalye sayısını sıfırla
+            currentChairs = 0;
+            activeChairs.clear();
+            chairCount.textContent = '0';
+            selectedChairs.value = '0';
+            
+            // Tüm sandalyeleri aktif yap
+            const chairs = this.querySelectorAll('.chair');
+            chairs.forEach(chair => {
+                chair.classList.remove('active');
+            });
+            
+            // Form submit butonunu aktif et
+            submitBtn.disabled = false;
+            
+            // Seçilen masa ID'sini form'a ekle
+            selectedTableId.value = this.dataset.tableId;
+        });
+    });
+
+    // Chair click handling
+    tableCards.forEach(card => {
+        const chairs = card.querySelectorAll('.chair');
+        chairs.forEach(chair => {
+            chair.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (!card.classList.contains('selected')) return;
+                
+                const maxChairs = parseInt(card.dataset.maxChairs);
+                const minChairs = parseInt(card.dataset.minChairs);
+                
+                if (this.classList.contains('active')) {
+                    // Sandalye seçimini kaldır
+                    this.classList.remove('active');
+                    activeChairs.delete(this);
+                    currentChairs--;
+                    chairCount.textContent = currentChairs;
+                    selectedChairs.value = currentChairs;
+                } else {
+                    // Yeni sandalye seç
+                    if (currentChairs < maxChairs) {
+                        this.classList.add('active');
+                        activeChairs.add(this);
+                        currentChairs++;
+                        chairCount.textContent = currentChairs;
+                        selectedChairs.value = currentChairs;
+                    }
+                }
+            });
+        });
+    });
+
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity() || !selectedTable) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %} 

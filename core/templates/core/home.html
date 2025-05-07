@@ -1,0 +1,210 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Ana Sayfa - SAN Rezervasyon{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-buttons .btn {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+        margin: 0 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+    .hero-buttons .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+    .feature-card {
+        padding: 2rem;
+        border-radius: 15px;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: #fff3cd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+    .feature-icon i {
+        font-size: 2.5rem;
+        color: #ffc107;
+    }
+    .category-card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .category-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .category-icon {
+        width: 100px;
+        height: 100px;
+        background: #fff3cd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+    .category-icon i {
+        font-size: 3rem;
+        color: #ffc107;
+    }
+    .cta-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        padding: 100px 0;
+        border-radius: 20px;
+        margin: 4rem 0;
+    }
+    .cta-section .btn {
+        padding: 1rem 3rem;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block hero %}
+<section class="hero-section">
+    <div class="container">
+        <h1 class="display-3 mb-4">SAN Rezervasyon'a Hoş Geldiniz</h1>
+        <p class="lead mb-5">Özenle hazırlanmış menümüz ve olağanüstü hizmetimizle unutulmaz bir deneyim yaşayın</p>
+        <div class="hero-buttons">
+            <a href="{% url 'core:menu' %}" class="btn btn-primary">
+                <i class="bi bi-book me-2"></i>Menüyü İncele
+            </a>
+            <a href="{% url 'core:reservation' %}" class="btn btn-outline-light">
+                <i class="bi bi-calendar-check me-2"></i>Rezervasyon Yap
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="features mb-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <h3>Kaliteli Yemek</h3>
+                <p class="text-muted">Ödüllü şeflerimizle mutfak mükemmelliğini deneyimleyin.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-cup-hot-fill"></i>
+                </div>
+                <h3>Taze Malzemeler</h3>
+                <p class="text-muted">Yemeklerimizde sadece en kaliteli ve taze malzemeleri kullanıyoruz.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-heart-fill"></i>
+                </div>
+                <h3>Rahat Ortam</h3>
+                <p class="text-muted">Sıcak ve samimi ortamımızda yemeğinizin keyfini çıkarın.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="menu-preview mb-5">
+    <h2 class="text-center mb-5">Menü Kategorilerimiz</h2>
+    <div class="row">
+        {% for category in categories %}
+        <div class="col-md-4 mb-4">
+            <div class="card category-card h-100">
+                <div class="card-body text-center">
+                    <div class="category-icon">
+                        <i class="bi bi-egg-fried"></i>
+                    </div>
+                    <h3 class="card-title">{{ category.name }}</h3>
+                    <p class="card-text text-muted">{{ category.description }}</p>
+                    <a href="{% url 'core:menu' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-right me-2"></i>Ürünleri Gör
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="cta-section text-center text-white">
+    <div class="container">
+        <h2 class="display-4 mb-4">Hemen Rezervasyon Yapın</h2>
+        <p class="lead mb-5">SAN Rezervasyon'da mükemmel bir yemek deneyimi yaşayın</p>
+        <a href="{% url 'core:reservation' %}" class="btn btn-primary">
+            <i class="bi bi-calendar-check me-2"></i>Masa Ayırt
+        </a>
+    </div>
+</section>
+
+<section class="info">
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Çalışma Saatleri</h3>
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="bi bi-clock me-2 text-warning"></i>
+                            Pazartesi - Cuma: 11:00 - 22:00
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-clock me-2 text-warning"></i>
+                            Cumartesi: 10:00 - 23:00
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-clock me-2 text-warning"></i>
+                            Pazar: 10:00 - 22:00
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">İletişim Bilgileri</h3>
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="bi bi-geo-alt me-2 text-warning"></i>
+                            123 Restaurant Sokak
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-telephone me-2 text-warning"></i>
+                            (123) 456-7890
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-envelope me-2 text-warning"></i>
+                            info@sanrezervasyon.com
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

@@ -1,0 +1,176 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Sipariş Oluştur - SAN Rezervasyon{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-container {
+        padding-top: 2rem;
+    }
+    .menu-items {
+        margin-top: 2rem;
+    }
+    .menu-item-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        padding: 1.5rem;
+    }
+    .menu-item-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    .menu-item-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+    .menu-item-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    .menu-item-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    .menu-item-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #28a745;
+    }
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .quantity-btn {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .quantity-btn:hover {
+        background: #e9ecef;
+    }
+    .quantity-input {
+        width: 60px;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 0.5rem;
+    }
+    .submit-order {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 5px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-top: 2rem;
+    }
+    .submit-order:hover {
+        background: #218838;
+        transform: translateY(-2px);
+    }
+    .table-info {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .table-info h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+    .table-details {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container order-container">
+    <div class="row">
+        <div class="col-12">
+            <div class="table-info">
+                <h3>Masa {{ table.number }}</h3>
+                <div class="table-details">
+                    <p><i class="bi bi-people me-2"></i>{{ table.capacity }} Kişilik</p>
+                    <p><i class="bi bi-chair me-2"></i>{{ table.min_chairs }}-{{ table.max_chairs }} Sandalye</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row menu-items">
+            {% for item in menu_items %}
+            <div class="col-md-6 col-lg-4">
+                <div class="menu-item-card">
+                    {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="menu-item-image">
+                    {% endif %}
+                    <div class="menu-item-name">{{ item.name }}</div>
+                    <div class="menu-item-description">{{ item.description }}</div>
+                    <div class="menu-item-price">{{ item.price }} TL</div>
+                    <div class="quantity-control">
+                        <button type="button" class="quantity-btn decrease" data-item-id="{{ item.id }}">-</button>
+                        <input type="number" name="quantities" value="0" min="0" class="quantity-input" data-item-id="{{ item.id }}">
+                        <button type="button" class="quantity-btn increase" data-item-id="{{ item.id }}">+</button>
+                        <input type="hidden" name="menu_items" value="{{ item.id }}">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="submit-order">
+                <i class="bi bi-check-circle me-2"></i>Siparişi Tamamla
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    const decreaseButtons = document.querySelectorAll('.decrease');
+    const increaseButtons = document.querySelectorAll('.increase');
+
+    decreaseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+            const currentValue = parseInt(input.value);
+            if (currentValue > 0) {
+                input.value = currentValue - 1;
+            }
+        });
+    });
+
+    increaseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+            const currentValue = parseInt(input.value);
+            input.value = currentValue + 1;
+        });
+    });
+});
+</script>
+{% endblock %} 
